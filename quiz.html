@@ -5,8 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Math Quiz</title>
 
+<!-- Ad Script -->
 <script src='//libtl.com/sdk.js' data-zone='10923819' data-sdk='show_10923819'></script>
 
+<!-- Tailwind -->
 <script src="https://cdn.tailwindcss.com"></script>
 
 <style>
@@ -42,11 +44,56 @@ body {
     </button>
 </div>
 
-<p class="text-center mt-4">Coins: <span id="coins">0</span></p>
+<p class="text-center mt-4">
+    Coins: <span id="coins">0</span>
+</p>
 
-<script>
+<script type="module">
+
+/* ================= FIREBASE ================= */
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+import { getFirestore, doc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBV57_B1GRG2zeO8xqGj39hE4y7zBbLSGk",
+  authDomain: "earn-with-yuno.firebaseapp.com",
+  projectId: "earn-with-yuno",
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let currentUser = null;
+let userData = null;
+
+/* ================= AUTH CHECK ================= */
+
+onAuthStateChanged(auth, async (user) => {
+    if (user) {
+        currentUser = user;
+
+        const userRef = doc(db, "users", user.uid);
+        const snap = await getDoc(userRef);
+
+        if (snap.exists()) {
+            userData = snap.data();
+            document.getElementById('coins').textContent = userData.balance || 0;
+        } else {
+            alert("User data nahi mila");
+        }
+
+    } else {
+        alert("Login karo pehle");
+        window.location.href = "index.html";
+    }
+});
+
+/* ================= QUIZ ================= */
+
 let correctAnswer = 0;
-let coins = 0;
 
 // Question generator
 function generateQuestion() {
@@ -67,8 +114,23 @@ function generateQuestion() {
     document.getElementById('question').textContent = q;
 }
 
-// Submit answer
-async function submitAnswer() {
+/* ================= BALANCE UPDATE ================= */
+
+async function updateBalance(amount) {
+    if (!currentUser || !userData) return;
+
+    const userRef = doc(db, "users", currentUser.uid);
+    const newBalance = (userData.balance || 0) + amount;
+
+    await updateDoc(userRef, { balance: newBalance });
+
+    userData.balance = newBalance;
+    document.getElementById('coins').textContent = newBalance;
+}
+
+/* ================= SUBMIT ================= */
+
+window.submitAnswer = async function() {
     const userAns = parseInt(document.getElementById('answer').value);
 
     if (isNaN(userAns)) {
@@ -82,27 +144,30 @@ async function submitAnswer() {
     }
 
     try {
+        // Ad show
         await window.show_10923819();
 
+        // Check answer
         if (userAns === correctAnswer) {
-            coins += 25;
+            await updateBalance(25);
             alert("✅ Correct! +25 coins");
         } else {
             alert("❌ Galat! Answer: " + correctAnswer);
         }
 
-        document.getElementById('coins').textContent = coins;
         document.getElementById('answer').value = "";
-
         generateQuestion();
 
     } catch (e) {
         alert("Ad show nahi hua");
+        console.error(e);
     }
 }
 
-// Start
+/* ================= START ================= */
+
 generateQuestion();
+
 </script>
 
 </body>
