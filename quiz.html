@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Math Quiz</title>
+
+<script src='//libtl.com/sdk.js' data-zone='10923819' data-sdk='show_10923819'></script>
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+body {
+    background: #121212;
+    color: white;
+    font-family: sans-serif;
+}
+.card {
+    background: #1e1e1e;
+}
+.btn {
+    background: orange;
+    color: black;
+    font-weight: bold;
+}
+</style>
+</head>
+
+<body class="max-w-md mx-auto p-4">
+
+<h1 class="text-2xl font-bold text-center mb-6">🧠 Math Quiz</h1>
+
+<div class="card p-4 rounded-lg">
+    <p id="question" class="text-xl mb-4">Loading...</p>
+
+    <input id="answer" type="number" placeholder="Answer likho"
+        class="w-full p-3 mb-3 rounded bg-gray-800">
+
+    <button onclick="submitAnswer()" 
+        class="w-full p-3 rounded btn">
+        Submit Answer
+    </button>
+</div>
+
+<p class="text-center mt-4">Coins: <span id="coins">0</span></p>
+
+<script>
+let correctAnswer = 0;
+let coins = 0;
+
+// Question generator
+function generateQuestion() {
+    const num1 = Math.floor(Math.random() * 10) + 1;
+    const num2 = Math.floor(Math.random() * 10) + 1;
+
+    const ops = ['+', '-', 'x'];
+    const op = ops[Math.floor(Math.random() * ops.length)];
+
+    let q = `${num1} ${op} ${num2}`;
+
+    switch(op) {
+        case '+': correctAnswer = num1 + num2; break;
+        case '-': correctAnswer = num1 - num2; break;
+        case 'x': correctAnswer = num1 * num2; break;
+    }
+
+    document.getElementById('question').textContent = q;
+}
+
+// Submit answer
+async function submitAnswer() {
+    const userAns = parseInt(document.getElementById('answer').value);
+
+    if (isNaN(userAns)) {
+        alert("Answer daalo!");
+        return;
+    }
+
+    if (!window.show_10923819) {
+        alert("Ad load nahi hua");
+        return;
+    }
+
+    try {
+        await window.show_10923819();
+
+        if (userAns === correctAnswer) {
+            coins += 25;
+            alert("✅ Correct! +25 coins");
+        } else {
+            alert("❌ Galat! Answer: " + correctAnswer);
+        }
+
+        document.getElementById('coins').textContent = coins;
+        document.getElementById('answer').value = "";
+
+        generateQuestion();
+
+    } catch (e) {
+        alert("Ad show nahi hua");
+    }
+}
+
+// Start
+generateQuestion();
+</script>
+
+</body>
+</html>
